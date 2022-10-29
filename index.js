@@ -54,6 +54,7 @@ function viewAllDepartments() {
     start();
 };
 
+// Shows a table with role/job names, ids, and the salary
 function viewAllRoles() {
     db.query('SELECT roles.job_title AS name, roles.id AS id, roles.department_id AS department, roles.salary AS salary FROM roles', function (err, results) {
         if (err) {
@@ -64,6 +65,7 @@ function viewAllRoles() {
     start();
 };
 
+// Shows a table with employee ids, first names, last names, their roles/jobs and their manager(s)
 function viewAllEmployees() {
     db.query('SELECT employees.id AS id, employees.first_name AS name, employees.last_name AS surname, employees.role_id AS title(s), employee.manager_id AS manager(s) FROM departments', function (err, results) {
         if (err) {
@@ -74,16 +76,83 @@ function viewAllEmployees() {
     start();
 };
 
+// Takes in the name of the new department and adds it to the database, console logs the name and goes to the main menu.
 function addDepartment() {
+    inquirer.prompt([
+        {
+            type: 'input',
+            message: 'What is the name of the department?',
+            name: 'departmentName',
+        },
+    ]).then((response) => {
+        db.query(`INSERT INTO departments (department_name) VALUES(${response.departmentName})`);
+
+        console.log(`Added ${response.departmentName} to the database.`);
+
+        start();        
+    })
 
 };
 
+// Asks the name, salary, and department for the new role, logs it into the database, and then console logs the name after. Returns to the main menu.
 function addRole() {
+    inquirer.prompt([
+        {
+            type: 'input',
+            message: "What is the name of the role?",
+            name: 'roleName',
+        },
+        {
+            type: 'input',
+            message: "What is the salary for this role?",
+            name: 'roleSalary',
+        },
+        {
+            type: 'list',
+            message: "What department does this role fall under?",
+            choices: [],
+            name: 'roleDepartment',
+        },
+    ]).then((response) => {
+        db.query(`INSERT INTO roles (job_title, salary, department_id) VALUES(${response.roleName},${response.roleSalary},${response.roleDepartment});`);
 
+        console.log(`Added ${response.roleName} to the database.`);
+
+        start();        
+    })
 };
 
+// Asks prompts to get the four pieces of data that go into the employee table and console logs their name after.
 function addEmployee() {
+    inquirer.prompt([
+        {
+            type: 'input',
+            message: "What is the employee's first name?",
+            name: 'empFirstName',
+        },
+        {
+            type: 'input',
+            message: "What is the employee's last name?",
+            name: 'empLastName',
+        },
+        {
+            type: 'list',
+            message: "What is the employee's role?",
+            choices: [],
+            name: 'empRole',
+        },
+        {
+            type: 'input',
+            message: "Who is the employee's manager?",
+            name: 'empManager',
+        },
+    ]).then((response) => {
+    db.query(`INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES(${response.empFirstName},${response.empLastName},${response.empRole},${response.empManager});`);
 
+    console.log(`Added ${response.empFirstName} ${response.empLastName} to the database.`); 
+
+    start();
+    }); 
 };
 
 function updateEmployeeRole() {

@@ -5,12 +5,12 @@ VALUES
 ("Accounting"),
 ("Marketing");
 
-INSERT INTO roles (job_title, salary)
+INSERT INTO roles (job_title, salary, department_id)
 VALUES 
-("Salesperson", 80000),
-("Manager", 140000),
-("Accountant", 75000),
-("Marketing", 65000);
+("Salesperson", 80000, 1),
+("Manager", 140000, 2),
+("Accountant", 75000, 3),
+("Marketing", 65000, 4);
 
 INSERT INTO employees (first_name, last_name, role_id, manager_id)
 VALUES 
