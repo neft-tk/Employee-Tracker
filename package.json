@@ -1,0 +1,23 @@
+{
+  "name": "employee-tracker",
+  "version": "1.0.0",
+  "description": "Command-line based application that manages a company's employee database using Node.js, Inquirer, and MySQL.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neft-tk/Employee-Tracker.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/neft-tk/Employee-Tracker/issues"
+  },
+  "homepage": "https://github.com/neft-tk/Employee-Tracker#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "inquirer": "^9.1.4"
+  }
+}
