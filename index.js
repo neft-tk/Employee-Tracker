@@ -1,5 +1,17 @@
 const inquirer = require('inquirer');
 const fs = require('fs');
+const mysql = require('mysql2');
+
+// Connect to company database
+const db = mysql.createConnection(
+    {
+      host: 'localhost',
+      user: 'root',
+      password: 'password',
+      database: 'company_db'
+    },
+    console.log(`Connected to the books_db database.`)
+);
 
 // Prompt that starts application when node index.js is called
 function start(); {
@@ -31,16 +43,35 @@ function start(); {
     })
 };
 
+// Shows a table with department names and ids
 function viewAllDepartments() {
-
+    db.query('SELECT departments.department_name AS name, departments.id AS id FROM departments', function (err, results) {
+        if (err) {
+            throw err
+        }
+        console.table(results);        
+    });
+    start();
 };
 
 function viewAllRoles() {
-
+    db.query('SELECT roles.job_title AS name, roles.id AS id, roles.department_id AS department, roles.salary AS salary FROM roles', function (err, results) {
+        if (err) {
+            throw err
+        }
+        console.table(results);        
+    });
+    start();
 };
 
 function viewAllEmployees() {
-
+    db.query('SELECT employees.id AS id, employees.first_name AS name, employees.last_name AS surname, employees.role_id AS title(s), employee.manager_id AS manager(s) FROM departments', function (err, results) {
+        if (err) {
+            throw err
+        }
+        console.table(results);        
+    });
+    start();
 };
 
 function addDepartment() {
