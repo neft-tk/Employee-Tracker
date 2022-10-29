@@ -10,7 +10,7 @@ const db = mysql.createConnection(
       password: 'password',
       database: 'company_db'
     },
-    console.log(`Connected to the books_db database.`)
+    console.log(`Connected to the company_db database.`)
 );
 
 // Prompt that starts application when node index.js is called
@@ -98,6 +98,20 @@ function addDepartment() {
 
 };
 
+// Gets the data from the db 
+// makes a new array that is just the role names
+// returns the new array 
+function currentRoles() {
+    db.query('SELECT roles.job_title FROM roles', function (err,result) {
+        if (err) {
+            throw err;
+        } else {
+            const roleList = result.map(roles.job_title);
+            return roleList;
+        }
+    });
+};
+
 // Asks the name, salary, and department for the new role, logs it into the database, and then console logs the name after. Returns to the main menu.
 function addRole() {
     inquirer.prompt([
@@ -114,7 +128,7 @@ function addRole() {
         {
             type: 'list',
             message: "What department does this role fall under?",
-            choices: [],
+            choices: currentRoles(),
             name: 'roleDepartment',
         },
     ]).then((response) => {
@@ -146,7 +160,7 @@ function addEmployee() {
         {
             type: 'list',
             message: "What is the employee's role?",
-            choices: [],
+            choices: currentRoles(),
             name: 'empRole',
         },
         {
@@ -167,19 +181,33 @@ function addEmployee() {
     }); 
 };
 
+// Gets the data from the db 
+// makes a new array that is just the employee names
+// returns the new array 
+function currentEmployees() {
+    db.query('SELECT employees.first_name, employees.last_name FROM employees', function (err,result) {
+        if (err) {
+            throw err;
+        } else {
+            const employeeList = result.map();
+            return employeeList;
+        }
+    });
+};
+
 // Prompts which employee and what their new role will be, overwrites the employee's old role, console logs it and returns to the main menu.
 function updateEmployeeRole() {
     inquirer.prompt([
         {
             type: 'list',
             message: "Which employee's data do you want to update?",
-            choices: [],
+            choices: currentEmployees(),
             name: 'updateEmployee',
         },
         {
             type: 'list',
             message: 'What is their new role?',
-            choices: [],
+            choices: currentRoles(),
             name: 'newEmployeeRole',
         },
     ]).then((response) => {
