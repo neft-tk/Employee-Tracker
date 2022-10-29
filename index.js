@@ -47,8 +47,8 @@ function start(); {
 function viewAllDepartments() {
     db.query('SELECT departments.department_name AS name, departments.id AS id FROM departments', function (err, results) {
         if (err) {
-            throw err
-        }
+            throw err;
+        };
         console.table(results);        
     });
     start();
@@ -58,8 +58,8 @@ function viewAllDepartments() {
 function viewAllRoles() {
     db.query('SELECT roles.job_title AS name, roles.id AS id, roles.department_id AS department, roles.salary AS salary FROM roles', function (err, results) {
         if (err) {
-            throw err
-        }
+            throw err;
+        };
         console.table(results);        
     });
     start();
@@ -69,8 +69,8 @@ function viewAllRoles() {
 function viewAllEmployees() {
     db.query('SELECT employees.id AS id, employees.first_name AS name, employees.last_name AS surname, employees.role_id AS title(s), employee.manager_id AS manager(s) FROM departments', function (err, results) {
         if (err) {
-            throw err
-        }
+            throw err;
+        };
         console.table(results);        
     });
     start();
@@ -85,7 +85,11 @@ function addDepartment() {
             name: 'departmentName',
         },
     ]).then((response) => {
-        db.query(`INSERT INTO departments (department_name) VALUES(${response.departmentName})`);
+        db.query(`INSERT INTO departments (department_name) VALUES(${response.departmentName});`, function (err, result) {
+            if (err) {
+                throw err;
+            };
+        });
 
         console.log(`Added ${response.departmentName} to the database.`);
 
@@ -114,7 +118,11 @@ function addRole() {
             name: 'roleDepartment',
         },
     ]).then((response) => {
-        db.query(`INSERT INTO roles (job_title, salary, department_id) VALUES(${response.roleName},${response.roleSalary},${response.roleDepartment});`);
+        db.query(`INSERT INTO roles (job_title, salary, department_id) VALUES(${response.roleName},${response.roleSalary},${response.roleDepartment});`, function (err, result) {
+            if (err) {
+                throw err;
+            };
+        });
 
         console.log(`Added ${response.roleName} to the database.`);
 
@@ -147,7 +155,11 @@ function addEmployee() {
             name: 'empManager',
         },
     ]).then((response) => {
-    db.query(`INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES(${response.empFirstName},${response.empLastName},${response.empRole},${response.empManager});`);
+    db.query(`INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES(${response.empFirstName},${response.empLastName},${response.empRole},${response.empManager});`, function (err, result) {
+        if (err) {
+            throw err;
+        };
+    });
 
     console.log(`Added ${response.empFirstName} ${response.empLastName} to the database.`); 
 
@@ -155,8 +167,32 @@ function addEmployee() {
     }); 
 };
 
+// Prompts which employee and what their new role will be, overwrites the employee's old role, console logs it and returns to the main menu.
 function updateEmployeeRole() {
+    inquirer.prompt([
+        {
+            type: 'list',
+            message: "Which employee's data do you want to update?",
+            choices: [],
+            name: 'updateEmployee',
+        },
+        {
+            type: 'list',
+            message: 'What is their new role?',
+            choices: [],
+            name: 'newEmployeeRole',
+        },
+    ]).then((response) => {
+        db.query(`INSERT INTO employees (role_id) WHERE id = ${response.updateEmployee} VALUES(${response.newEmployeeRole});`, function (err, result) {
+            if (err) {
+                throw err;
+            };
+        });
 
+        console.log(`Updated ${response.updateEmployee}'s role to ${response.newEmployeeRole}.`);
+
+        start();        
+    });
 };
 
 start();
