@@ -14,7 +14,7 @@ const db = mysql.createConnection(
 );
 
 // Prompt that starts application when node index.js is called
-function start(); {
+function start() {
     inquirer.prompt([
         {
             type: 'list',
@@ -102,11 +102,14 @@ function addDepartment() {
 // makes a new array that is just the role names
 // returns the new array 
 function currentRoles() {
-    db.query('SELECT roles.job_title FROM roles', function (err,result) {
+    db.query('SELECT job_title FROM roles', function (err,result) {
         if (err) {
             throw err;
         } else {
-            const roleList = result.map(roles.job_title);
+            const roleList = result.map((object) => {
+                return object.job_title;
+            });
+            console.log(roleList);
             return roleList;
         }
     });
@@ -128,7 +131,7 @@ function addRole() {
         {
             type: 'list',
             message: "What department does this role fall under?",
-            choices: currentRoles(),
+            choices: currentDepartments(),
             name: 'roleDepartment',
         },
     ]).then((response) => {
@@ -223,4 +226,5 @@ function updateEmployeeRole() {
     });
 };
 
-start();
+// start();
+currentRoles();
