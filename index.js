@@ -47,34 +47,35 @@ function start() {
 function viewAllDepartments() {
     db.query('SELECT departments.department_name AS name, departments.id AS id FROM departments', function (err, results) {
         if (err) {
-            throw err;
-        };
+            console.log(err);
+        } else
         console.table(results);        
+        start();
     });
-    start();
 };
 
 // Shows a table with role/job names, ids, and the salary
 function viewAllRoles() {
-    db.query('SELECT roles.job_title AS name, roles.id AS id, roles.department_id AS department, roles.salary AS salary FROM roles', function (err, results) {
+    db.query('SELECT roles.job_title AS title, roles.id AS id, roles.department_id AS department, roles.salary AS salary FROM roles', function (err, results) {
         if (err) {
             throw err;
         };
-        console.table(results);        
+        console.table(results);    
+        start();    
     });
-    start();
 };
 
 // Shows a table with employee ids, first names, last names, their roles/jobs and their manager(s)
 function viewAllEmployees() {
-    db.query('SELECT employees.id AS id, employees.first_name AS name, employees.last_name AS surname, employees.role_id AS title(s), employee.manager_id AS manager(s) FROM departments', function (err, results) {
+    db.query('SELECT employees.id AS id, first_name AS name, last_name AS last, roles.job_title AS title, manager_id AS manager FROM employees JOIN roles ON employees.role_id = roles.id', function (err, results) {
         if (err) {
-            throw err;
+            console.log(err);
         };
         console.table(results);        
+        start();
     });
-    start();
 };
+
 
 // Takes in the name of the new department and adds it to the database, console logs the name and goes to the main menu.
 function addDepartment() {
@@ -85,23 +86,81 @@ function addDepartment() {
             name: 'departmentName',
         },
     ]).then((response) => {
-        db.query(`INSERT INTO departments (department_name) VALUES(${response.departmentName});`, function (err, result) {
+        db.query(`INSERT INTO departments (department_name) VALUE(?)`, [response.departmentName], function (err, result) {
             if (err) {
-                throw err;
-            };
+                console.log(err);
+            } else
+            console.log(`Added ${response.departmentName} to the database.`);
+            start();        
         });
-
-        console.log(`Added ${response.departmentName} to the database.`);
-
-        start();        
     })
+};
 
+
+// Asks the name, salary, and department for the new role, logs it into the database, and then console logs the name after. Returns to the main menu.
+function addRole() {
+
+    db.query('SELECT * FROM departments', function (err,result) {
+        if (err) {
+            throw err;
+        } else {
+            const departmentList = result.map((object) => {
+                return {
+                    name:object.department_name,
+                    value:object.id,
+                }
+            });
+            console.log(departmentList);            
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    message: "What is the name of the role?",
+                    name: 'roleName',
+                },
+                {
+                    type: 'input',
+                    message: "What is the salary for this role?",
+                    name: 'roleSalary',
+                },
+                {
+                    type: 'list',
+                    message: "What department does this role fall under?",
+                    choices: departmentList, 
+                    name: 'roleDepartment',
+                },
+            ]).then((response) => {
+                db.query(`INSERT INTO roles (job_title, salary, department_id) VALUES(?,?,?)`, [response.roleName, response.roleSalary, response.roleDepartment], function (err, result) {
+                    if (err) {
+                        console.log(err);
+                    } else start();
+                });
+                console.log(`Added ${response.roleName} to the database.`);        
+            })
+        } 
+    }); 
+    
 };
 
 // Gets the data from the db 
-// makes a new array that is just the role names
+// makes a new array that combines the first and last name with a space
 // returns the new array 
-function currentRoles() {
+function currentEmployees() {
+    db.query('SELECT * FROM employees', function (err,result) {
+        if (err) {
+            throw err;
+        } else {
+            const employeeList = result.map((object) => {
+                return object.first_name + " " + object.last_name;
+            });
+            console.log(employeeList);            
+            return employeeList;
+        } 
+    }); 
+};
+
+// Asks prompts to get the four pieces of data that go into the employee table and console logs their name after.
+function addEmployee() {
+
     db.query('SELECT job_title FROM roles', function (err,result) {
         if (err) {
             throw err;
@@ -109,46 +168,8 @@ function currentRoles() {
             const roleList = result.map((object) => {
                 return object.job_title;
             });
-            console.log(roleList);
-            return roleList;
-        }
-    });
-};
-
-// Asks the name, salary, and department for the new role, logs it into the database, and then console logs the name after. Returns to the main menu.
-function addRole() {
-    inquirer.prompt([
-        {
-            type: 'input',
-            message: "What is the name of the role?",
-            name: 'roleName',
-        },
-        {
-            type: 'input',
-            message: "What is the salary for this role?",
-            name: 'roleSalary',
-        },
-        {
-            type: 'list',
-            message: "What department does this role fall under?",
-            choices: currentDepartments(),
-            name: 'roleDepartment',
-        },
-    ]).then((response) => {
-        db.query(`INSERT INTO roles (job_title, salary, department_id) VALUES(${response.roleName},${response.roleSalary},${response.roleDepartment});`, function (err, result) {
-            if (err) {
-                throw err;
-            };
-        });
-
-        console.log(`Added ${response.roleName} to the database.`);
-
-        start();        
-    })
-};
-
-// Asks prompts to get the four pieces of data that go into the employee table and console logs their name after.
-function addEmployee() {
+    console.log(roleList);
+    
     inquirer.prompt([
         {
             type: 'input',
@@ -163,7 +184,7 @@ function addEmployee() {
         {
             type: 'list',
             message: "What is the employee's role?",
-            choices: currentRoles(),
+            choices: roleList,
             name: 'empRole',
         },
         {
@@ -172,59 +193,67 @@ function addEmployee() {
             name: 'empManager',
         },
     ]).then((response) => {
-    db.query(`INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES(${response.empFirstName},${response.empLastName},${response.empRole},${response.empManager});`, function (err, result) {
+    db.query(`INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES(?,?,?,?)`, [response.empFirstName, response.empLastName, response.empRole, response.empManager], function (err, result) {
         if (err) {
-            throw err;
-        };
+            console.log(err);
+        } else 
+        console.log(`Added ${response.empFirstName} ${response.empLastName} to the database.`); 
+        start();
     });
-
-    console.log(`Added ${response.empFirstName} ${response.empLastName} to the database.`); 
-
-    start();
     }); 
-};
-
-// Gets the data from the db 
-// makes a new array that is just the employee names
-// returns the new array 
-function currentEmployees() {
-    db.query('SELECT employees.first_name, employees.last_name FROM employees', function (err,result) {
-        if (err) {
-            throw err;
-        } else {
-            const employeeList = result.map();
-            return employeeList;
-        }
-    });
-};
+}}
+)};
 
 // Prompts which employee and what their new role will be, overwrites the employee's old role, console logs it and returns to the main menu.
 function updateEmployeeRole() {
+
+    db.query('SELECT job_title FROM roles', function (err,result) {
+        if (err) {
+            console.log(err);
+        } else {
+            const roleList = result.map((object) => {
+                return object.job_title;
+            });
+    console.log(roleList);
+
+    db.query('SELECT * FROM employees', function (err,result) {
+        if (err) {
+            console.log(err);
+        } else {
+            const employeeList = result.map((object) => {
+                return object.first_name + " " + object.last_name;
+            });
+            console.log(employeeList);            
+            return employeeList;
+        } 
+    }); 
+
     inquirer.prompt([
         {
             type: 'list',
             message: "Which employee's data do you want to update?",
-            choices: currentEmployees(),
+            choices: employeeList,
             name: 'updateEmployee',
         },
         {
             type: 'list',
             message: 'What is their new role?',
-            choices: currentRoles(),
+            choices: roleList,
             name: 'newEmployeeRole',
         },
     ]).then((response) => {
-        db.query(`INSERT INTO employees (role_id) WHERE id = ${response.updateEmployee} VALUES(${response.newEmployeeRole});`, function (err, result) {
+        db.query(`INSERT INTO employees (role_id) WHERE id = ? VALUES(?)`, [response.updateEmployee,response.newEmployeeRole], function (err, result) {
             if (err) {
-                throw err;
-            };
+                console.log(err);
+            } else 
+            console.log(`Updated ${response.updateEmployee}'s role to ${response.newEmployeeRole}.`);
+            start();        
         });
-
-        console.log(`Updated ${response.updateEmployee}'s role to ${response.newEmployeeRole}.`);
-
-        start();        
     });
-};
+}})};
 
-// start();
-currentRoles();
+start();
+// currentRoles();
+// currentEmployees();
+// updateEmployeeRole();
+// addRole();
