@@ -56,7 +56,7 @@ function viewAllDepartments() {
 
 // Shows a table with role/job names, ids, and the salary
 function viewAllRoles() {
-    db.query('SELECT roles.job_title AS title, roles.id AS id, roles.department_id AS department, roles.salary AS salary FROM roles', function (err, results) {
+    db.query('SELECT roles.job_title AS title, roles.id AS id, departments.department_name AS department, roles.salary AS salary FROM roles JOIN departments ON roles.department_id = departments.id', function (err, results) {
         if (err) {
             throw err;
         };
@@ -67,7 +67,7 @@ function viewAllRoles() {
 
 // Shows a table with employee ids, first names, last names, their roles/jobs and their manager(s)
 function viewAllEmployees() {
-    db.query('SELECT employees.id AS id, first_name AS name, last_name AS last, roles.job_title AS title, manager_id AS manager FROM employees JOIN roles ON employees.role_id = roles.id', function (err, results) {
+    db.query('SELECT employees.id AS id, first_name AS name, last_name AS last, roles.job_title AS title, department_name AS department, roles.salary AS salary, manager_id AS manager FROM employees JOIN roles ON employees.role_id = roles.id JOIN departments ON roles.department_id = departments.id', function (err, results) {
         if (err) {
             console.log(err);
         };
@@ -207,26 +207,30 @@ function addEmployee() {
 // Prompts which employee and what their new role will be, overwrites the employee's old role, console logs it and returns to the main menu.
 function updateEmployeeRole() {
 
-    db.query('SELECT job_title FROM roles', function (err,result) {
+    db.query('SELECT * FROM roles', function (err,result) {
         if (err) {
             console.log(err);
         } else {
             const roleList = result.map((object) => {
-                return object.job_title;
+                return {
+                    name:object.job_title,
+                    value:object.id,
+                }
             });
-    console.log(roleList);
+             console.log(roleList);
 
     db.query('SELECT * FROM employees', function (err,result) {
         if (err) {
             console.log(err);
         } else {
             const employeeList = result.map((object) => {
-                return object.first_name + " " + object.last_name;
+                return {
+                    name: object.first_name + " " + object.last_name,
+                    value: object.id,
+                };
             });
             console.log(employeeList);            
-            return employeeList;
-        } 
-    }); 
+            
 
     inquirer.prompt([
         {
@@ -242,15 +246,17 @@ function updateEmployeeRole() {
             name: 'newEmployeeRole',
         },
     ]).then((response) => {
-        db.query(`INSERT INTO employees (role_id) WHERE id = ? VALUES(?)`, [response.updateEmployee,response.newEmployeeRole], function (err, result) {
+        db.query(`UPDATE employees SET role_id = ?  WHERE id = ?`, [response.newEmployeeRole, response.updateEmployee], function (err, result) {
             if (err) {
                 console.log(err);
             } else 
-            console.log(`Updated ${response.updateEmployee}'s role to ${response.newEmployeeRole}.`);
+            console.log(`Updated ${employeeList[(response.updateEmployee -1)].name}'s role to ${roleList[(response.newEmployeeRole -1)].name}.`);
             start();        
         });
-    });
-}})};
+    })} 
+}); 
+}}
+)};
 
 start();
 // currentRoles();
