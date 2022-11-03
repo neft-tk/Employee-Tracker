@@ -67,7 +67,7 @@ function viewAllRoles() {
 
 // Shows a table with employee ids, first names, last names, their roles/jobs and their manager(s)
 function viewAllEmployees() {
-    db.query('SELECT employees.id AS id, first_name AS name, last_name AS last, roles.job_title AS title, department_name AS department, roles.salary AS salary, manager_id AS manager FROM employees JOIN roles ON employees.role_id = roles.id JOIN departments ON roles.department_id = departments.id', function (err, results) {
+    db.query('SELECT employees.id AS id, employees.first_name AS name, employees.last_name AS last, roles.job_title AS title, department_name AS department, roles.salary AS salary, CONCAT(manager.first_name, " ", manager.last_name) AS manager FROM employees LEFT JOIN roles ON employees.role_id = roles.id LEFT JOIN departments ON roles.department_id = departments.id LEFT JOIN employees manager ON manager.id = employees.manager_id', function (err, results) {
         if (err) {
             console.log(err);
         };
@@ -102,7 +102,7 @@ function addRole() {
 
     db.query('SELECT * FROM departments', function (err,result) {
         if (err) {
-            throw err;
+            console.log(err);
         } else {
             const departmentList = result.map((object) => {
                 return {
@@ -141,32 +141,19 @@ function addRole() {
     
 };
 
-// Gets the data from the db 
-// makes a new array that combines the first and last name with a space
-// returns the new array 
-function currentEmployees() {
-    db.query('SELECT * FROM employees', function (err,result) {
-        if (err) {
-            throw err;
-        } else {
-            const employeeList = result.map((object) => {
-                return object.first_name + " " + object.last_name;
-            });
-            console.log(employeeList);            
-            return employeeList;
-        } 
-    }); 
-};
 
 // Asks prompts to get the four pieces of data that go into the employee table and console logs their name after.
 function addEmployee() {
 
-    db.query('SELECT job_title FROM roles', function (err,result) {
+    db.query('SELECT * FROM roles', function (err,result) {
         if (err) {
-            throw err;
+            console.log(err);
         } else {
             const roleList = result.map((object) => {
-                return object.job_title;
+                return {
+                    name: object.job_title,
+                    value: object.id
+                }
             });
     console.log(roleList);
     
@@ -189,7 +176,7 @@ function addEmployee() {
         },
         {
             type: 'input',
-            message: "Who is the employee's manager?",
+            message: "What is the employee's manager id?",
             name: 'empManager',
         },
     ]).then((response) => {
